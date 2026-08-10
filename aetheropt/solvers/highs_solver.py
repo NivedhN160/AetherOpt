@@ -14,7 +14,13 @@ class HighsSolver(BaseSolver):
         n = Q.shape[0]
         max_size = config.get("max_size", 100)
         if n > max_size:
-            raise ValueError(f"Problem size n={n} is too large for local HiGHS solver (max {max_size}).")
+            return SolverResultData(
+                solver_name="highs",
+                best_solution=[],
+                objective_value=float('inf'),
+                runtime_seconds=0.0,
+                solver_metadata={"status": "failed", "error": f"Problem size n={n} is too large for local HiGHS solver (max {max_size})."}
+            )
             
         try:
             h = highspy.Highs()
@@ -80,4 +86,10 @@ class HighsSolver(BaseSolver):
                 solver_metadata={"status": h.getModelStatus().name}
             )
         except Exception as e:
-            raise RuntimeError(f"HiGHS solver failed: {e}")
+            return SolverResultData(
+                solver_name="highs",
+                best_solution=[],
+                objective_value=float('inf'),
+                runtime_seconds=time.time() - start_time,
+                solver_metadata={"status": "failed", "error": str(e)}
+            )

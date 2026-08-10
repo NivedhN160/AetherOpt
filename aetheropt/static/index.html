@@ -35,7 +35,7 @@
     </style>
 </head>
 <body class="min-h-screen p-8">
-    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
+    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: '', history: [] }" x-init="fetchHistory()">
         <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
@@ -44,7 +44,7 @@
             <div class="flex space-x-4 items-center">
                 <div class="flex items-center space-x-2">
                     <label class="text-sm text-slate-400">API Key:</label>
-                    <input type="password" x-model="apiKey" placeholder="secret_key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
+                    <input type="password" x-model="apiKey" placeholder="Enter API Key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
                 </div>
                 <a href="/docs" class="text-blue-400 hover:text-blue-300 text-sm">API Docs</a>
             </div>
@@ -228,9 +228,15 @@
                         <h3 class="text-lg font-medium mb-3">Solver Comparison</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <template x-for="res in results" :key="res.solver_name">
-                                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4" :class="{'border-red-500/50': res.solver_metadata?.error}">
                                     <h4 class="font-semibold text-blue-400 mb-2 capitalize" x-text="res.solver_name.replace('_', ' ')"></h4>
-                                    <div class="space-y-2 text-sm">
+                                    
+                                    <!-- Error State for specific solver -->
+                                    <template x-if="res.solver_metadata && res.solver_metadata.error">
+                                        <div class="text-sm text-red-400 p-2 bg-red-900/20 rounded border border-red-900/50" x-text="res.solver_metadata.error"></div>
+                                    </template>
+                                    
+                                    <div x-show="!res.solver_metadata || !res.solver_metadata.error" class="space-y-2 text-sm">
                                         <div class="flex justify-between">
                                             <span class="text-slate-400">Objective:</span>
                                             <span class="font-mono" x-text="res.objective_value.toFixed(4)"></span>
@@ -295,6 +301,7 @@
                                                 <pre class="bg-slate-900 p-2 rounded text-[10px] overflow-x-auto text-emerald-300 mt-1" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
                                             </template>
                                         </div>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -358,6 +365,12 @@
             comp.jobStatus = 'pending';
             comp.results = null;
 
+            if (!comp.apiKey) {
+                comp.jobStatus = 'failed';
+                comp.results = { error_message: 'API Key is required to submit jobs.' };
+                return;
+            }
+
             try {
                 const response = await fetch('/api/v1/jobs/', {
                     method: 'POST',
@@ -389,7 +402,8 @@
                 
             } catch (err) {
                 console.error(err);
-                alert("Failed to submit job: " + err.message);
+                comp.jobStatus = 'failed';
+                comp.results = { error_message: err.message };
             }
         }
 
