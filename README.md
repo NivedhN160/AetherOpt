@@ -1,57 +1,76 @@
 # AetherOpt
 
-**Production-grade Quantum-Inspired Optimization Platform**
+**Production-Grade Quantum-Inspired Optimization Platform**
 
-AetherOpt is a fully local, free, production-quality platform for solving combinatorial optimization problems using quantum-inspired algorithms and classical solvers.
+AetherOpt is an end-to-end framework and API for mapping hard combinatorial problems to Quadratic Unconstrained Binary Optimization (QUBO) and solving them using classical, quantum-inspired, and exact solvers. 
+
+It is designed with stability, asynchronous execution, and rigorous data validation to serve as a robust backend for production workloads.
 
 ## Features
-- Portfolio Optimization
-- Task Scheduling
-- Vehicle Routing (small instances)
-- Max-Cut
-- Generic QUBO
-- Quantum-Inspired Simulated Annealing
-- Classical solvers (HiGHS)
-- Optional local QAOA
-- Clean web UI + REST API
-- Job history & comparison
-- Zero cost, runs on laptop
 
-## Quick Start
+- **Asynchronous Execution:** Safely run long combinatorial solves in the background with a thread-safe SQLAlchemy integration.
+- **Strict Data Validation:** Comprehensive Pydantic models for all problem domains (Portfolio, Max-Cut, Routing, Scheduling) ensuring fail-fast validation.
+- **Multiple Solvers:**
+  - `quantum_inspired_sa`: Simulated annealing enhanced with barrier tunneling probability bounds.
+  - `classical_sa`: Fast, traditional simulated annealing.
+  - `highs`: High-performance mixed-integer programming (MIP) exact solver via HiGHS, with guardrails on problem size.
+- **Job History:** View and poll past optimization runs with full energy histories and solver metadata.
+- **Modern UI:** Built-in SPA (Alpine.js + TailwindCSS) demonstrating all problem formulations and real-time polling.
+
+## Getting Started
+
+### Installation
+
+1. Clone the repository.
+2. Ensure you have `uv` installed. If not: `pip install uv`
+3. Sync dependencies: `uv sync`
+
+### Running the App
+
+Start the application with both the frontend and API exposed on port 8000:
 
 ```bash
-git clone <repo>
-cd aetheropt
-python -m venv .venv
-source .venv/bin/activate          # or .venv\Scripts\activate on Windows
-pip install -e .
-cp .env.example .env
-aetheropt                         # or uvicorn aetheropt.main:app --reload
+npm start
+```
+*Note: This runs `uv run aetheropt` under the hood.*
+
+Visit `http://localhost:8000` to access the interactive web interface.
+The API Documentation is available at `http://localhost:8000/docs`.
+
+### API Usage Example
+
+Submit a Portfolio Optimization job to the exact solver and quantum-inspired SA:
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/jobs/' \
+  -H 'accept: application/json' \
+  -H 'X-API-Key: secret_key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "problem_type": "portfolio",
+  "data": {
+    "expected_returns": [0.1, 0.2],
+    "covariance_matrix": [[0.04, 0.01], [0.01, 0.05]],
+    "k": 1,
+    "risk_aversion": 0.5
+  },
+  "solvers": [
+    "quantum_inspired_sa",
+    "highs"
+  ],
+  "config": {
+    "num_reads": 10,
+    "num_steps": 1000,
+    "seed": 42
+  }
+}'
 ```
 
-Open http://localhost:8000
+## Running Tests
 
-## Architecture
-AetherOpt runs as a FastAPI application with a SQLite database for jobs and results. Background tasks handle solver execution so the API remains responsive.
+Execute the comprehensive test suite locally:
 
-## Supported Problems
-- Portfolio Optimization
-- Task Scheduling
-- Vehicle Routing
-- Max-Cut
-- Generic QUBO
-
-## Solvers
-- Quantum-Inspired SA (with tunneling)
-- Classical SA
-- HiGHS (Exact / Classical)
-- Local QAOA (Placeholder for extension)
-
-## API Documentation
-http://localhost:8000/docs
-
-## Configuration
-See `.env.example`
-
-## License
-MIT
+```bash
+uv run pytest
+```

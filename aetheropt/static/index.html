@@ -35,18 +35,22 @@
     </style>
 </head>
 <body class="min-h-screen p-8">
-    <div class="max-w-6xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null }">
+    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
         <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
                 <p class="text-slate-400 text-sm mt-1">Production-Grade Quantum-Inspired Optimization</p>
             </div>
-            <div class="flex space-x-4">
+            <div class="flex space-x-4 items-center">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-slate-400">API Key:</label>
+                    <input type="password" x-model="apiKey" placeholder="secret_key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
+                </div>
                 <a href="/docs" class="text-blue-400 hover:text-blue-300 text-sm">API Docs</a>
             </div>
         </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Left Column: Problem Definition -->
             <div class="lg:col-span-1 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border">
                 <h2 class="text-xl font-semibold mb-4 text-white">1. Define Problem</h2>
@@ -56,6 +60,8 @@
                     <select x-model="currentTab" class="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="portfolio">Portfolio Optimization</option>
                         <option value="maxcut">Max-Cut</option>
+                        <option value="scheduling">Job Scheduling</option>
+                        <option value="routing">Vehicle Routing</option>
                         <option value="qubo">Generic QUBO</option>
                     </select>
                 </div>
@@ -107,6 +113,64 @@
                             @click="submitJob('maxcut', {adjacency_matrix: JSON.parse(adjacency)})"
                             class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded transition-colors">
                             Solve Max-Cut
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scheduling Form -->
+                <div x-show="currentTab === 'scheduling'" style="display: none;" x-data="{
+                        numTasks: 5,
+                        numMachines: 2,
+                        taskLengths: '10, 20, 15, 5, 25'
+                    }">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Number of Tasks</label>
+                                <input type="number" x-model="numTasks" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Number of Machines</label>
+                                <input type="number" x-model="numMachines" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Task Lengths (comma separated)</label>
+                            <input type="text" x-model="taskLengths" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono">
+                        </div>
+                        <button 
+                            @click="submitJob('scheduling', {num_tasks: parseInt(numTasks), num_machines: parseInt(numMachines), task_lengths: taskLengths.split(',').map(Number)})"
+                            class="w-full mt-4 bg-orange-600 hover:bg-orange-500 text-white font-medium py-2 rounded transition-colors">
+                            Solve Scheduling
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Routing Form -->
+                <div x-show="currentTab === 'routing'" style="display: none;" x-data="{
+                        numLocations: 4,
+                        numVehicles: 1,
+                        distances: '[[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]'
+                    }">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Locations (N)</label>
+                                <input type="number" x-model="numLocations" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Vehicles</label>
+                                <input type="number" x-model="numVehicles" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Distance Matrix (JSON array)</label>
+                            <textarea x-model="distances" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
+                        </div>
+                        <button 
+                            @click="submitJob('routing', {num_locations: parseInt(numLocations), num_vehicles: parseInt(numVehicles), distance_matrix: JSON.parse(distances)})"
+                            class="w-full mt-4 bg-red-600 hover:bg-red-500 text-white font-medium py-2 rounded transition-colors">
+                            Solve Routing
                         </button>
                     </div>
                 </div>
@@ -191,6 +255,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Far Right Column: Job History -->
+            <div class="lg:col-span-1 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border flex flex-col max-h-[800px] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-white">3. History</h2>
+                    <button @click="fetchHistory()" class="text-slate-400 hover:text-white" title="Refresh History">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+                
+                <div x-show="history.length === 0" class="text-sm text-slate-500 text-center mt-10">
+                    No recent jobs found.
+                </div>
+
+                <div class="space-y-3">
+                    <template x-for="job in history" :key="job.id">
+                        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors"
+                             @click="loadJob(job.id)">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-semibold text-blue-400 uppercase" x-text="job.problem_type"></span>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full" 
+                                      :class="{
+                                          'bg-yellow-500/20 text-yellow-400': job.status === 'pending' || job.status === 'running',
+                                          'bg-emerald-500/20 text-emerald-400': job.status === 'completed',
+                                          'bg-red-500/20 text-red-400': job.status === 'failed'
+                                      }"
+                                      x-text="job.status"></span>
+                            </div>
+                            <div class="text-xs text-slate-400 font-mono truncate" x-text="job.id"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -214,7 +311,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-API-Key': 'secret_key'
+                        'X-API-Key': comp.apiKey
                     },
                     body: JSON.stringify({
                         problem_type: problemType,
@@ -224,7 +321,10 @@
                     })
                 });
 
-                if (!response.ok) throw new Error('Submission failed');
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail?.[0]?.msg || err.detail || 'Submission failed');
+                }
                 
                 const result = await response.json();
                 comp.jobId = result.id;
@@ -232,9 +332,12 @@
                 // Poll for results
                 pollJobStatus(result.id, comp);
                 
+                // Refresh history
+                comp.fetchHistory();
+                
             } catch (err) {
                 console.error(err);
-                alert("Failed to submit job. Check console.");
+                alert("Failed to submit job: " + err.message);
             }
         }
 
@@ -242,7 +345,7 @@
             const interval = setInterval(async () => {
                 try {
                     const response = await fetch(`/api/v1/results/${jobId}`, {
-                        headers: { 'X-API-Key': 'secret_key' }
+                        headers: { 'X-API-Key': comp.apiKey }
                     });
                     
                     if (response.ok) {
@@ -263,7 +366,31 @@
             }, 1000);
         }
         
+        async function fetchHistory() {
+            const comp = document.querySelector('[x-data]').__x.$data;
+            try {
+                const response = await fetch('/api/v1/jobs/?limit=10', {
+                    headers: { 'X-API-Key': comp.apiKey }
+                });
+                if (response.ok) {
+                    comp.history = await response.json();
+                }
+            } catch (err) {
+                console.error("History fetch error", err);
+            }
+        }
+
+        async function loadJob(jobId) {
+            const comp = document.querySelector('[x-data]').__x.$data;
+            comp.jobId = jobId;
+            comp.jobStatus = 'pending'; // Show loading
+            comp.results = null;
+            pollJobStatus(jobId, comp);
+        }
+        
         window.submitJob = submitJob;
+        window.fetchHistory = fetchHistory;
+        window.loadJob = loadJob;
     </script>
 </body>
 </html>

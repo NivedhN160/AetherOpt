@@ -10,24 +10,29 @@ class QuantumInspiredSA(BaseSolver):
     def solve(self, Q: np.ndarray, config: Dict[str, Any]) -> SolverResultData:
         start_time = time.time()
         
+        seed = config.get("seed")
+        if seed is not None:
+            np.random.seed(int(seed))
+            
         num_reads = config.get("num_reads", 10)
         num_steps = config.get("num_steps", 1000)
         initial_temp = config.get("initial_temp", 10.0)
         final_temp = config.get("final_temp", 0.01)
-        tunneling_prob = config.get("tunneling_prob", 0.1) # Probability of accepting worse solution regardless of Temp
+        tunneling_prob = max(0.0, min(1.0, float(config.get("tunneling_prob", 0.1))))
         
         n = Q.shape[0]
         best_overall_state = None
         best_overall_energy = float('inf')
         
-        all_energies = []
+        full_energy_history = []
+        best_energies_per_read = []
         
         for read in range(num_reads):
             state = np.random.randint(2, size=n)
             energy = state.T @ Q @ state
             
             temp = initial_temp
-            cooling_rate = (final_temp / initial_temp) ** (1 / num_steps)
+            cooling_rate = (final_temp / initial_temp) ** (1 / num_steps) if num_steps > 0 else 1.0
             
             for step in range(num_steps):
                 idx = np.random.randint(n)
@@ -43,8 +48,9 @@ class QuantumInspiredSA(BaseSolver):
                     energy = new_energy
                     
                 temp *= cooling_rate
+                full_energy_history.append(float(energy))
                 
-            all_energies.append(energy)
+            best_energies_per_read.append(float(energy))
             if energy < best_overall_energy:
                 best_overall_energy = energy
                 best_overall_state = state
@@ -52,8 +58,13 @@ class QuantumInspiredSA(BaseSolver):
         runtime = time.time() - start_time
         return SolverResultData(
             solver_name="quantum_inspired_sa",
-            best_solution=best_overall_state.tolist(),
+            best_solution=best_overall_state.tolist() if best_overall_state is not None else [],
             objective_value=float(best_overall_energy),
             runtime_seconds=runtime,
-            solver_metadata={"energies": [float(e) for e in all_energies]}
+            solver_metadata={
+                "num_reads": num_reads,
+                "num_steps": num_steps,
+                "best_energies_per_read": best_energies_per_read,
+                "energies": full_energy_history
+            }
         )

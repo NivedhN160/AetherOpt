@@ -10,6 +10,10 @@ class ClassicalSA(BaseSolver):
     def solve(self, Q: np.ndarray, config: Dict[str, Any]) -> SolverResultData:
         start_time = time.time()
         
+        seed = config.get("seed")
+        if seed is not None:
+            np.random.seed(int(seed))
+            
         num_reads = config.get("num_reads", 10)
         num_steps = config.get("num_steps", 1000)
         initial_temp = config.get("initial_temp", 10.0)
@@ -19,21 +23,19 @@ class ClassicalSA(BaseSolver):
         best_overall_state = None
         best_overall_energy = float('inf')
         
-        all_energies = []
+        full_energy_history = []
+        best_energies_per_read = []
         
         for read in range(num_reads):
             state = np.random.randint(2, size=n)
             energy = state.T @ Q @ state
             
             temp = initial_temp
-            cooling_rate = (final_temp / initial_temp) ** (1 / num_steps)
+            cooling_rate = (final_temp / initial_temp) ** (1 / num_steps) if num_steps > 0 else 1.0
             
             for step in range(num_steps):
-                # Flip a random bit
                 idx = np.random.randint(n)
-                # Change in energy if we flip state[idx]
-                # delta_E = Q[idx, idx]*(1 - 2*state[idx]) + sum_{j != idx} 2 * Q[idx, j] * state[j] * (1 - 2*state[idx])
-                # A simpler way is just to evaluate full energy:
+                
                 new_state = state.copy()
                 new_state[idx] = 1 - new_state[idx]
                 
@@ -45,8 +47,9 @@ class ClassicalSA(BaseSolver):
                     energy = new_energy
                     
                 temp *= cooling_rate
+                full_energy_history.append(float(energy))
                 
-            all_energies.append(energy)
+            best_energies_per_read.append(float(energy))
             if energy < best_overall_energy:
                 best_overall_energy = energy
                 best_overall_state = state
@@ -54,8 +57,13 @@ class ClassicalSA(BaseSolver):
         runtime = time.time() - start_time
         return SolverResultData(
             solver_name="classical_sa",
-            best_solution=best_overall_state.tolist(),
+            best_solution=best_overall_state.tolist() if best_overall_state is not None else [],
             objective_value=float(best_overall_energy),
             runtime_seconds=runtime,
-            solver_metadata={"energies": [float(e) for e in all_energies]}
+            solver_metadata={
+                "num_reads": num_reads,
+                "num_steps": num_steps,
+                "best_energies_per_read": best_energies_per_read,
+                "energies": full_energy_history
+            }
         )
