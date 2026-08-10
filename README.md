@@ -14,6 +14,14 @@ It is designed with stability, asynchronous execution, and rigorous data validat
 
 ---
 
+## 📸 Interactive Web Interface
+
+![AetherOpt Dashboard](assets/screenshot_home.png)
+
+![AetherOpt Results](assets/screenshot_results.png)
+
+---
+
 ## 🚀 Features
 
 - **Asynchronous Execution:** Safely run long combinatorial solves in the background with a thread-safe SQLAlchemy integration.
