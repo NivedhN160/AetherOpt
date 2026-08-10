@@ -240,8 +240,60 @@
                                             <span class="font-mono" x-text="res.runtime_seconds.toFixed(4) + 's'"></span>
                                         </div>
                                         <div class="mt-3 pt-3 border-t border-slate-700">
-                                            <span class="text-slate-400 text-xs block mb-1">Solution:</span>
-                                            <pre class="bg-slate-900 p-2 rounded text-xs overflow-x-auto text-emerald-300" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
+                                            <span class="text-slate-400 text-xs block mb-2">Interpreted Solution:</span>
+                                            
+                                            <!-- Portfolio -->
+                                            <template x-if="res.best_solution && res.best_solution.selected_assets !== undefined">
+                                                <div class="text-sm">
+                                                    <span class="text-slate-300 text-xs">Selected Assets: </span>
+                                                    <div class="flex flex-wrap gap-1 mt-1">
+                                                        <template x-for="asset in res.best_solution.selected_assets">
+                                                            <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 font-mono text-xs" x-text="asset"></span>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Routing -->
+                                            <template x-if="res.best_solution && res.best_solution.route !== undefined">
+                                                <div class="text-sm">
+                                                    <span class="text-slate-300 text-xs">Optimal Route: </span>
+                                                    <div class="flex flex-wrap items-center gap-1 mt-1">
+                                                        <template x-for="(city, idx) in res.best_solution.route">
+                                                            <div class="flex items-center">
+                                                                <span class="bg-emerald-900/50 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-mono text-xs" x-text="city"></span>
+                                                                <template x-if="idx < res.best_solution.route.length - 1">
+                                                                    <span class="text-slate-500 mx-1">→</span>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Scheduling -->
+                                            <template x-if="res.best_solution && res.best_solution.schedule !== undefined">
+                                                <div class="text-sm space-y-2 mt-1">
+                                                    <template x-for="(tasks, machine) in res.best_solution.schedule">
+                                                        <div>
+                                                            <span class="text-slate-400 text-xs">Machine <span x-text="machine"></span>:</span>
+                                                            <div class="flex flex-wrap gap-1 mt-0.5">
+                                                                <template x-if="tasks.length === 0">
+                                                                    <span class="text-slate-500 text-xs italic">Idle</span>
+                                                                </template>
+                                                                <template x-for="task in tasks">
+                                                                    <span class="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded border border-orange-800 font-mono text-xs" x-text="'T' + task"></span>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- Generic QUBO Fallback -->
+                                            <template x-if="!res.best_solution || (res.best_solution.selected_assets === undefined && res.best_solution.route === undefined && res.best_solution.schedule === undefined)">
+                                                <pre class="bg-slate-900 p-2 rounded text-[10px] overflow-x-auto text-emerald-300 mt-1" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>

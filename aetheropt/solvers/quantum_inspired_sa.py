@@ -35,6 +35,9 @@ class QuantumInspiredSA(BaseSolver):
             cooling_rate = (final_temp / initial_temp) ** (1 / num_steps) if num_steps > 0 else 1.0
             
             for step in range(num_steps):
+                if time.time() - start_time > config.get("time_limit", 60.0):
+                    break
+                    
                 idx = np.random.randint(n)
                 new_state = state.copy()
                 new_state[idx] = 1 - new_state[idx]
