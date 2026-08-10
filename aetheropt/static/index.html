@@ -300,7 +300,7 @@
         // Simple fetch wrapper to handle API calls
         async function submitJob(problemType, data) {
             const solvers = ['quantum_inspired_sa', 'classical_sa', 'highs'];
-            const comp = document.querySelector('[x-data]').__x.$data;
+            const comp = Alpine.$data(document.querySelector('[x-data]'));
             
             comp.jobId = null;
             comp.jobStatus = 'pending';
@@ -333,7 +333,7 @@
                 pollJobStatus(result.id, comp);
                 
                 // Refresh history
-                comp.fetchHistory();
+                fetchHistory();
                 
             } catch (err) {
                 console.error(err);
@@ -367,7 +367,7 @@
         }
         
         async function fetchHistory() {
-            const comp = document.querySelector('[x-data]').__x.$data;
+            const comp = Alpine.$data(document.querySelector('[x-data]'));
             try {
                 const response = await fetch('/api/v1/jobs/?limit=10', {
                     headers: { 'X-API-Key': comp.apiKey }
@@ -381,7 +381,7 @@
         }
 
         async function loadJob(jobId) {
-            const comp = document.querySelector('[x-data]').__x.$data;
+            const comp = Alpine.$data(document.querySelector('[x-data]'));
             comp.jobId = jobId;
             comp.jobStatus = 'pending'; // Show loading
             comp.results = null;
