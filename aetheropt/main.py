@@ -45,4 +45,4 @@ def read_root():
 def start():
     """Entry point for the CLI script."""
     import uvicorn
-    uvicorn.run("aetheropt.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("aetheropt.main:app", host="127.0.0.1", port=8000, reload=True)
