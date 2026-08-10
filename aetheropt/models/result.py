@@ -6,7 +6,7 @@ class SolverResultData(BaseModel):
     best_solution: Any
     objective_value: float
     runtime_seconds: float
-    metadata: Dict[str, Any] = {}
+    solver_metadata: Dict[str, Any] = {}
 
 class ResultResponse(BaseModel):
     id: int
@@ -15,7 +15,7 @@ class ResultResponse(BaseModel):
     best_solution: Any
     objective_value: float
     runtime_seconds: float
-    metadata: Dict[str, Any]
+    solver_metadata: Dict[str, Any]
     
     class Config:
         from_attributes = True

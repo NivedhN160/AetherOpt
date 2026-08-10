@@ -57,5 +57,5 @@ class ClassicalSA(BaseSolver):
             best_solution=best_overall_state.tolist(),
             objective_value=float(best_overall_energy),
             runtime_seconds=runtime,
-            metadata={"energies": [float(e) for e in all_energies]}
+            solver_metadata={"energies": [float(e) for e in all_energies]}
         )

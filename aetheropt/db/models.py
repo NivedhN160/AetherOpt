@@ -24,6 +24,6 @@ class Result(Base):
     best_solution = Column(JSON)
     objective_value = Column(Float)
     runtime_seconds = Column(Float)
-    metadata = Column(JSON, default=dict)
+    solver_metadata = Column(JSON, default=dict)
 
     job = relationship("Job", back_populates="results")

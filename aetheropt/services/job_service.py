@@ -53,7 +53,7 @@ def run_job(job_id: str, db: Session):
                 best_solution=interpreted_solution,
                 objective_value=result_data.objective_value,
                 runtime_seconds=result_data.runtime_seconds,
-                metadata=result_data.metadata
+                solver_metadata=result_data.solver_metadata
             )
             db.add(db_result)
             

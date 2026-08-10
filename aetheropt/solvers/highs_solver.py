@@ -81,5 +81,5 @@ class HighsSolver(BaseSolver):
             best_solution=best_state.tolist(),
             objective_value=info.objective_function_value,
             runtime_seconds=runtime,
-            metadata={"status": h.getModelStatus().name}
+            solver_metadata={"status": h.getModelStatus().name}
         )
