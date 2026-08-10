@@ -308,9 +308,12 @@
                         </div>
                     </div>
                     
-                    <div x-show="jobStatus === 'failed'" class="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg">
-                        <p class="font-semibold mb-1">Job Failed</p>
-                        <p class="text-sm font-mono" x-text="results?.error_message || 'Unknown error'"></p>
+                    <div x-show="jobStatus === 'failed'" class="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg flex items-start space-x-3">
+                        <svg class="w-6 h-6 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <p class="font-semibold mb-1 text-red-300">Job Failed</p>
+                            <p class="text-sm text-red-200/80" x-text="results?.error_message || 'An unknown error occurred while processing your request.'"></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -388,7 +391,9 @@
 
                 if (!response.ok) {
                     const err = await response.json();
-                    throw new Error(err.detail?.[0]?.msg || err.detail || 'Submission failed');
+                    let errMsg = err.detail?.[0]?.msg || err.detail || 'The server rejected the request. Please check your inputs.';
+                    if (typeof errMsg === 'object') errMsg = JSON.stringify(errMsg);
+                    throw new Error(errMsg);
                 }
                 
                 const result = await response.json();

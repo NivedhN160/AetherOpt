@@ -1,3 +1,12 @@
+<div align="center">
+  <a href="README.md"><b>📖 README</b></a> &nbsp; | &nbsp;
+  <a href="architecture.md"><b>🏗️ Architecture</b></a> &nbsp; | &nbsp;
+  <a href="do.md"><b>📋 Project Spec</b></a> &nbsp; | &nbsp;
+  <a href="LICENSE.md"><b>⚖️ License</b></a>
+</div>
+
+<br/>
+
 # AetherOpt Architecture
 
 AetherOpt is structured as a modern, asynchronous, Python-based API designed for combinatorial optimization workloads. It bridges the gap between quantum-inspired algorithms and classical operations research by providing a unified interface to formulate and solve NP-hard problems.

@@ -1,4 +1,13 @@
 <div align="center">
+  <a href="README.md"><b>📖 README</b></a> &nbsp; | &nbsp;
+  <a href="architecture.md"><b>🏗️ Architecture</b></a> &nbsp; | &nbsp;
+  <a href="do.md"><b>📋 Project Spec</b></a> &nbsp; | &nbsp;
+  <a href="LICENSE.md"><b>⚖️ License</b></a>
+</div>
+
+<br/>
+
+<div align="center">
   <h1>AetherOpt 🌌</h1>
   <p><b>Production-Grade Quantum-Inspired Optimization Platform</b></p>
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
