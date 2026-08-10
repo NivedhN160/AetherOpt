@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherOpt - Quantum-Inspired Optimization</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            panel: '#1e293b',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    <div class="max-w-6xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null }">
+        <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
+                <p class="text-slate-400 text-sm mt-1">Production-Grade Quantum-Inspired Optimization</p>
+            </div>
+            <div class="flex space-x-4">
+                <a href="/docs" class="text-blue-400 hover:text-blue-300 text-sm">API Docs</a>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Problem Definition -->
+            <div class="lg:col-span-1 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border">
+                <h2 class="text-xl font-semibold mb-4 text-white">1. Define Problem</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Problem Type</label>
+                    <select x-model="currentTab" class="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="portfolio">Portfolio Optimization</option>
+                        <option value="maxcut">Max-Cut</option>
+                        <option value="qubo">Generic QUBO</option>
+                    </select>
+                </div>
+
+                <!-- Portfolio Form -->
+                <div x-show="currentTab === 'portfolio'" x-data="{
+                        expectedReturns: '0.1, 0.15, 0.08, 0.2',
+                        covariance: '[[0.04, 0.01, 0.0, 0.0], [0.01, 0.06, 0.02, 0.0], [0.0, 0.02, 0.03, 0.01], [0.0, 0.0, 0.01, 0.08]]',
+                        k: 2,
+                        riskAversion: 0.5
+                    }">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Expected Returns (comma separated)</label>
+                            <input type="text" x-model="expectedReturns" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Covariance Matrix (JSON array)</label>
+                            <textarea x-model="covariance" rows="3" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Number to Select (k)</label>
+                                <input type="number" x-model="k" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Risk Aversion</label>
+                                <input type="number" step="0.1" x-model="riskAversion" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+                            </div>
+                        </div>
+                        <button 
+                            @click="submitJob('portfolio', {expected_returns: expectedReturns.split(',').map(Number), covariance_matrix: JSON.parse(covariance), k: parseInt(k), risk_aversion: parseFloat(riskAversion)})"
+                            class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded transition-colors">
+                            Solve Portfolio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MaxCut Form -->
+                <div x-show="currentTab === 'maxcut'" style="display: none;" x-data="{
+                        adjacency: '[[0, 1, 1, 0], [1, 0, 1, 1], [1, 1, 0, 1], [0, 1, 1, 0]]'
+                    }">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Adjacency Matrix (JSON array)</label>
+                            <textarea x-model="adjacency" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
+                        </div>
+                        <button 
+                            @click="submitJob('maxcut', {adjacency_matrix: JSON.parse(adjacency)})"
+                            class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded transition-colors">
+                            Solve Max-Cut
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Generic QUBO Form -->
+                <div x-show="currentTab === 'qubo'" style="display: none;" x-data="{
+                        q_matrix: '[[-1, 2], [0, -1.5]]'
+                    }">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Q Matrix (JSON array, upper triangular or full)</label>
+                            <textarea x-model="q_matrix" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
+                        </div>
+                        <button 
+                            @click="submitJob('qubo', {Q: JSON.parse(q_matrix)})"
+                            class="w-full mt-4 bg-purple-600 hover:bg-purple-500 text-white font-medium py-2 rounded transition-colors">
+                            Solve QUBO
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="lg:col-span-2 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-white">2. Results & Comparison</h2>
+                
+                <div x-show="!jobId" class="flex-grow flex items-center justify-center text-slate-500 border-2 border-dashed border-slate-700 rounded-lg">
+                    Define and submit a problem to see results
+                </div>
+
+                <div x-show="jobId" style="display: none;">
+                    <div class="flex justify-between items-center mb-6 bg-slate-800 p-4 rounded-lg">
+                        <div>
+                            <span class="text-xs text-slate-400 block">Job ID</span>
+                            <span class="font-mono text-sm" x-text="jobId"></span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block">Status</span>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full" 
+                                  :class="{
+                                      'bg-yellow-500/20 text-yellow-400': jobStatus === 'pending' || jobStatus === 'running',
+                                      'bg-emerald-500/20 text-emerald-400': jobStatus === 'completed',
+                                      'bg-red-500/20 text-red-400': jobStatus === 'failed'
+                                  }"
+                                  x-text="jobStatus"></span>
+                        </div>
+                    </div>
+
+                    <div x-show="jobStatus === 'running' || jobStatus === 'pending'" class="flex justify-center p-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    </div>
+
+                    <div x-show="jobStatus === 'completed' && results">
+                        <h3 class="text-lg font-medium mb-3">Solver Comparison</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="res in results" :key="res.solver_name">
+                                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                                    <h4 class="font-semibold text-blue-400 mb-2 capitalize" x-text="res.solver_name.replace('_', ' ')"></h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">Objective:</span>
+                                            <span class="font-mono" x-text="res.objective_value.toFixed(4)"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">Time:</span>
+                                            <span class="font-mono" x-text="res.runtime_seconds.toFixed(4) + 's'"></span>
+                                        </div>
+                                        <div class="mt-3 pt-3 border-t border-slate-700">
+                                            <span class="text-slate-400 text-xs block mb-1">Solution:</span>
+                                            <pre class="bg-slate-900 p-2 rounded text-xs overflow-x-auto text-emerald-300" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <div x-show="jobStatus === 'failed'" class="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg">
+                        <p class="font-semibold mb-1">Job Failed</p>
+                        <p class="text-sm font-mono" x-text="results?.error_message || 'Unknown error'"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Alpine component logic injected to global for simplicity
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({}))
+        })
+
+        // Simple fetch wrapper to handle API calls
+        async function submitJob(problemType, data) {
+            const solvers = ['quantum_inspired_sa', 'classical_sa', 'highs'];
+            const comp = document.querySelector('[x-data]').__x.$data;
+            
+            comp.jobId = null;
+            comp.jobStatus = 'pending';
+            comp.results = null;
+
+            try {
+                const response = await fetch('/api/v1/jobs/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'secret_key'
+                    },
+                    body: JSON.stringify({
+                        problem_type: problemType,
+                        data: data,
+                        solvers: solvers,
+                        config: { num_reads: 5, num_steps: 100 }
+                    })
+                });
+
+                if (!response.ok) throw new Error('Submission failed');
+                
+                const result = await response.json();
+                comp.jobId = result.id;
+                
+                // Poll for results
+                pollJobStatus(result.id, comp);
+                
+            } catch (err) {
+                console.error(err);
+                alert("Failed to submit job. Check console.");
+            }
+        }
+
+        async function pollJobStatus(jobId, comp) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/v1/results/${jobId}`, {
+                        headers: { 'X-API-Key': 'secret_key' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        comp.jobStatus = data.status;
+                        
+                        if (data.status === 'completed' || data.status === 'failed') {
+                            clearInterval(interval);
+                            comp.results = data.results;
+                            if(data.status === 'failed') {
+                                comp.results = { error_message: data.error_message };
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Polling error", err);
+                }
+            }, 1000);
+        }
+        
+        window.submitJob = submitJob;
+    </script>
+</body>
+</html>

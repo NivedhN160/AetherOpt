@@ -1,0 +1,11 @@
+{
+  "name": "aetheropt",
+  "version": "1.0.0",
+  "description": "Production-grade Quantum-Inspired Optimization Platform",
+  "scripts": {
+    "start": ".venv\\Scripts\\aetheropt"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
