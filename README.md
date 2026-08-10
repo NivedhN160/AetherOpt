@@ -70,6 +70,9 @@ Visit [http://localhost:8000](http://localhost:8000) to access the interactive w
 
 ## 📚 Interactive API Usage
 
+> [!NOTE] 
+> The `X-API-Key` is configured to `secret_key` for local development by default. When deploying to production, enforce a secure token by setting the `API_KEY` environment variable and changing `AETHEROPT_ENV=production`.
+
 You can also submit jobs directly via curl. Try out this Portfolio Optimization problem!
 
 <details>

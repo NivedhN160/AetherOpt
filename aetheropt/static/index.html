@@ -35,7 +35,7 @@
     </style>
 </head>
 <body class="min-h-screen p-8">
-    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: '', history: [] }" x-init="fetchHistory()">
+    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
         <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
@@ -43,8 +43,8 @@
             </div>
             <div class="flex space-x-4 items-center">
                 <div class="flex items-center space-x-2">
-                    <label class="text-sm text-slate-400">API Key:</label>
-                    <input type="password" x-model="apiKey" placeholder="Enter API Key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
+                    <label class="text-sm text-slate-400">API Key (default: secret_key):</label>
+                    <input type="password" x-model="apiKey" placeholder="secret_key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
                 </div>
                 <a href="/docs" class="text-blue-400 hover:text-blue-300 text-sm">API Docs</a>
             </div>

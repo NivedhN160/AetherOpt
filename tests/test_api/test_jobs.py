@@ -44,3 +44,20 @@ def test_job_lifecycle(client: TestClient):
         
     assert status_data["status"] == "completed"
     assert len(status_data["results"]) == 2 # 2 solvers
+
+def test_validation_error(client: TestClient):
+    payload = {
+        "problem_type": "portfolio",
+        "data": {
+            # missing required fields and mismatching shapes
+            "expected_returns": [0.1, 0.2],
+            "covariance_matrix": [[0.04]], 
+        },
+        "solvers": ["classical_sa"]
+    }
+    response = client.post(
+        "/api/v1/jobs/",
+        json=payload,
+        headers={"X-API-Key": "secret_key"}
+    )
+    assert response.status_code == 422
