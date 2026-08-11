@@ -4,4 +4,5 @@ from aetheropt.solvers.quantum_inspired.quantum_inspired_sa import QuantumInspir
 from aetheropt.solvers.quantum.qaoa import QAOALocalSolver
 from aetheropt.solvers.quantum_inspired.simulated_bifurcation import SimulatedBifurcationSolver
 from aetheropt.solvers.hybrid.quantum_classical_pipeline import QuantumWarmstartSolver
+from aetheropt.solvers.hybrid.correlation_reduction import CorrelationReductionSolver
 from aetheropt.solvers.registry import get_solver

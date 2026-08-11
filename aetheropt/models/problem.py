@@ -61,6 +61,7 @@ class RoutingProblemData(BaseModel):
 
 class GenericQUBOData(BaseModel):
     Q: List[List[float]]
+    higher_order_terms: Optional[List[Dict[str, Any]]] = Field(default=None, description="Support for PUBO (Polynomial Unconstrained Binary Optimization)")
 
     @model_validator(mode='after')
     def check_shapes(self) -> 'GenericQUBOData':
@@ -73,6 +74,7 @@ class GenericQUBOData(BaseModel):
 class BaseProblemRequest(BaseModel):
     solvers: List[str] = Field(..., description="List of solvers to run, e.g. ['quantum_inspired_sa']")
     config: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    multi_objective_weights: Optional[Dict[str, float]] = Field(default=None, description="Weights for multi-objective optimization (e.g. {'risk': 0.5, 'return': 0.5})")
 
 class PortfolioRequest(BaseProblemRequest):
     problem_type: Literal["portfolio"]
