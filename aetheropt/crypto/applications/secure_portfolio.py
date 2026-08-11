@@ -1,0 +1,1 @@
+"""Secure portfolio logic stub."""

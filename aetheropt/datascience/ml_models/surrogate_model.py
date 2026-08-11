@@ -1,0 +1,1 @@
+"""ML surrogate model stub."""

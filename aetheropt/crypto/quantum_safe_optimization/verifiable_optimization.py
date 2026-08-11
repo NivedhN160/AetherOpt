@@ -1,0 +1,1 @@
+"""Verifiable optimization proofs stub."""
