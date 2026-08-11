@@ -35,7 +35,7 @@
     </style>
 </head>
 <body class="min-h-screen p-8">
-    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
+    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', selectedSolvers: ['simulated_bifurcation', 'classical_sa'], jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
         <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
@@ -64,6 +64,36 @@
                         <option value="routing">Vehicle Routing</option>
                         <option value="qubo">Generic QUBO</option>
                     </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Select Solvers</label>
+                    <div class="space-y-1">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="simulated_bifurcation" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">Simulated Bifurcation</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="qaoa_local" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">QAOA (Local)</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="quantum_warmstart" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">Hybrid Quantum Warmstart</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="correlation_reduction" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">Hybrid Correlation Reduction</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="quantum_inspired_sa" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">Quantum-Inspired SA</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="classical_sa" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
+                            <span class="text-sm">Classical SA</span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Portfolio Form -->
@@ -245,6 +275,21 @@
                                             <span class="text-slate-400">Time:</span>
                                             <span class="font-mono" x-text="res.runtime_seconds.toFixed(4) + 's'"></span>
                                         </div>
+                                        
+                                        <!-- Quantum/Hybrid Metadata -->
+                                        <template x-if="res.solver_metadata && res.solver_metadata.quantum_energy !== undefined">
+                                            <div class="flex justify-between text-purple-400 text-xs mt-1">
+                                                <span>Warmstart Quantum Energy:</span>
+                                                <span class="font-mono" x-text="res.solver_metadata.quantum_energy.toFixed(4)"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="res.solver_metadata && res.solver_metadata.frozen_count !== undefined">
+                                            <div class="flex justify-between text-emerald-400 text-xs mt-1">
+                                                <span>Variables Frozen (Reduction):</span>
+                                                <span class="font-mono" x-text="res.solver_metadata.frozen_count"></span>
+                                            </div>
+                                        </template>
+
                                         <div class="mt-3 pt-3 border-t border-slate-700">
                                             <span class="text-slate-400 text-xs block mb-2">Interpreted Solution:</span>
                                             
@@ -361,8 +406,13 @@
 
         // Simple fetch wrapper to handle API calls
         async function submitJob(problemType, data) {
-            const solvers = ['quantum_inspired_sa', 'classical_sa', 'highs'];
             const comp = Alpine.$data(document.querySelector('[x-data]'));
+            const solvers = comp.selectedSolvers || [];
+            
+            if (solvers.length === 0) {
+                alert("Please select at least one solver.");
+                return;
+            }
             
             comp.jobId = null;
             comp.jobStatus = 'pending';

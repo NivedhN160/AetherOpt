@@ -1,0 +1,23 @@
+{
+    "run_id": "20260811_203800_251487",
+    "experiment": "job_21c082fa-4497-4f03-8977-0a31637201d3",
+    "problem": "portfolio",
+    "timestamp": "2026-08-11T15:08:00.251487",
+    "parameters": {
+        "solver": "simulated_bifurcation",
+        "config": {
+            "num_reads": 5,
+            "num_steps": 100
+        },
+        "use_crypto": true
+    },
+    "metrics": {
+        "objective": 4.4350135155362355e+38,
+        "runtime": 0.005060911178588867,
+        "metadata": {
+            "status": "completed",
+            "steps": 100,
+            "dt": 0.1
+        }
+    }
+}

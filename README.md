@@ -1,7 +1,6 @@
 <div align="center">
   <a href="README.md"><b>📖 README</b></a> &nbsp; | &nbsp;
   <a href="architecture.md"><b>🏗️ Architecture</b></a> &nbsp; | &nbsp;
-  <a href="do.md"><b>📋 Project Spec</b></a> &nbsp; | &nbsp;
   <a href="LICENSE.md"><b>⚖️ License</b></a>
 </div>
 
@@ -17,30 +16,31 @@
 
 <br/>
 
-AetherOpt is an end-to-end framework and API for mapping hard combinatorial problems to Quadratic Unconstrained Binary Optimization (QUBO) and solving them using classical, quantum-inspired, and exact solvers. 
+AetherOpt is an end-to-end framework and API for mapping hard combinatorial problems to Quadratic Unconstrained Binary Optimization (QUBO) and solving them using classical, quantum-inspired, and quantum solvers. 
 
-It is designed with stability, asynchronous execution, and rigorous data validation to serve as a robust backend for production workloads.
+It is designed with stability, asynchronous execution, and rigorous data validation to serve as a robust backend for production workloads, integrating **Cryptography** and **Data Science** pipelines directly into the optimization workflows.
 
 ---
 
 ## 📸 Interactive Web Interface
 
-![AetherOpt Dashboard](assets/screenshot_home.png)
-
-![AetherOpt Results](assets/screenshot_results.png)
+![AetherOpt Results](assets/ui_screenshot.png)
 
 ---
 
 ## 🚀 Features
 
 - **Asynchronous Execution:** Safely run long combinatorial solves in the background with a thread-safe SQLAlchemy integration.
-- **Strict Data Validation:** Comprehensive Pydantic models for all problem domains (Portfolio, Max-Cut, Routing, Scheduling) ensuring fail-fast validation.
+- **Strict Data Validation:** Comprehensive Pydantic models for all problem domains (Portfolio, Max-Cut, Routing, Scheduling) ensuring fail-fast validation. Support for multi-objective & PUBO schemas.
 - **Multiple Solvers:**
-  - 🔮 `quantum_inspired_sa`: Simulated annealing enhanced with barrier tunneling probability bounds.
-  - ⚙️ `classical_sa`: Fast, traditional simulated annealing.
-  - 📏 `highs`: High-performance mixed-integer programming (MIP) exact solver via HiGHS, with guardrails on problem size.
-- **Job History:** View and poll past optimization runs with full energy histories and solver metadata.
-- **Interactive UI:** Built-in SPA (Alpine.js + TailwindCSS) demonstrating all problem formulations and real-time polling.
+  - 🌊 **Simulated Bifurcation:** High-performance quantum-inspired solver for dense QUBOs.
+  - ⚛️ **QAOA (Local):** Local quantum circuit simulation for Exact QAOA algorithms.
+  - 🔗 **Hybrid Quantum-Classical Pipeline:** Seed classical refinement (like SA or HiGHS) with states found by quantum/quantum-inspired solvers.
+  - ❄️ **Correlation Reduction:** Freeze variables dynamically based on spin correlation to reduce search space.
+  - 🔮 **Quantum-Inspired SA:** Simulated annealing enhanced with barrier tunneling probability bounds.
+  - ⚙️ **Classical SA & HiGHS:** Fast, traditional baselines and exact MIP solving.
+- **Cryptography Layer (Secure QUBO):** Submit blind optimization jobs. Matrix coefficients are scalar-blinded before reaching the solver to ensure mathematical privacy.
+- **Data Science Layer:** Automated experiment tracking (SQLite/MLflow concepts) to save run configurations, energies, and metadata across experiments.
 
 ---
 
@@ -59,9 +59,8 @@ uv sync
 Start the application with both the frontend and API exposed on port 8000:
 
 ```bash
-npm start
+uv run aetheropt
 ```
-*(This automatically runs `uv run aetheropt`)*
 
 ### 3. Interactive Web UI
 Visit [http://localhost:8000](http://localhost:8000) to access the interactive web interface, where you can define matrices and submit jobs seamlessly.
@@ -93,13 +92,14 @@ curl -X 'POST' \
     "risk_aversion": 0.5
   },
   "solvers": [
-    "quantum_inspired_sa",
+    "simulated_bifurcation",
+    "quantum_warmstart",
     "highs"
   ],
   "config": {
     "num_reads": 10,
     "num_steps": 1000,
-    "seed": 42
+    "secure": true
   }
 }'
 ```
@@ -116,7 +116,7 @@ curl -H 'X-API-Key: secret_key' http://localhost:8000/api/v1/results/{YOUR_JOB_I
 
 ## 🏗️ Architecture
 
-Curious about how AetherOpt processes jobs and maps domains to QUBOs? 
+Curious about how AetherOpt processes jobs and maps domains to QUBOs with crypto layers? 
 👉 **Check out the [Architecture Overview](architecture.md).**
 
 ## 🧪 Testing

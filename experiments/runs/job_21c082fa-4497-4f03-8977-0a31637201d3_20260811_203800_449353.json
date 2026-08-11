@@ -1,0 +1,22 @@
+{
+    "run_id": "20260811_203800_449353",
+    "experiment": "job_21c082fa-4497-4f03-8977-0a31637201d3",
+    "problem": "portfolio",
+    "timestamp": "2026-08-11T15:08:00.449353",
+    "parameters": {
+        "solver": "correlation_reduction",
+        "config": {
+            "num_reads": 5,
+            "num_steps": 100
+        },
+        "use_crypto": true
+    },
+    "metrics": {
+        "objective": -0.11999999999999507,
+        "runtime": 0.011024713516235352,
+        "metadata": {
+            "status": "completed_by_reduction",
+            "frozen_count": 4
+        }
+    }
+}
