@@ -13,6 +13,9 @@ dependencies = [
     "highspy>=1.5.3",
     "numpy>=1.24.0",
     "scipy>=1.10.0",
+    "qiskit>=2.5.1",
+    "qiskit-aer>=0.17.2",
+    "networkx>=3.4.2",
 ]
 
 [project.scripts]

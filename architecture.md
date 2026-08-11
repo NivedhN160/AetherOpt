@@ -29,12 +29,25 @@ graph TD
 ## Core Components
 
 ### 1. API Layer (`aetheropt/api/`)
-- Built with **FastAPI**.
-- Implements strict Pydantic validation. The models in `aetheropt/models/problem.py` use discriminated unions to dynamically route requests based on `problem_type` (e.g., `portfolio`, `routing`).
-- `v1/jobs.py` handles the `POST` acceptance (returns `202 Accepted`), spawning a background task.
-- `v1/results.py` allows asynchronous polling of completed solver states.
+FastAPI routers handling incoming HTTP requests. Models are validated using Pydantic, ensuring strictly typed data before it reaches the core system.
 
-### 2. Domain Models (`aetheropt/problems/`)
+### 2. Validation & Security (`aetheropt/core/` and `aetheropt/crypto/`)
+Problems are validated, API Keys are checked, and optional quantum-safe cryptography operations (e.g., QUBO coefficient encryption) are applied.
+
+### 3. Data Science Pipeline (`aetheropt/datascience/`)
+An integrated pipeline for feature engineering, pre-processing, ML surrogate models, and rigorous experiment tracking.
+
+### 4. Background Job Management (`aetheropt/services/job_service.py`)
+Heavy lifting is offloaded to `BackgroundTasks`. The service retrieves the problem payload and pushes it to the solver orchestrator, logging status to SQLite.
+
+### 5. Multi-Paradigm Solvers (`aetheropt/solvers/`)
+The solver engine features four primary domains:
+- **Classical**: Exact solvers (HiGHS) and classical SA.
+- **Quantum-Inspired**: High-performance classical heuristic simulators (Simulated Bifurcation, PT).
+- **Quantum**: State-vector QAOA and VQE simulators (Qiskit Aer).
+- **Hybrid**: Quantum warm-starts followed by classical refinement.
+
+### 6. Domain Models (`aetheropt/problems/`)
 All real-world combinatorial problems are mapped into Quadratic Unconstrained Binary Optimization (QUBO) structures.
 - **Portfolio Optimization**: Maps covariance and expected returns to a QUBO maximizing returns while penalizing risk.
 - **Vehicle Routing & Scheduling**: Constrained graphs reduced to binary penalties.

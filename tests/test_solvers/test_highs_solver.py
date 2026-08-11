@@ -1,5 +1,5 @@
 import numpy as np
-from aetheropt.solvers.highs_solver import HighsSolver
+from aetheropt.solvers.classical.highs_solver import HighsSolver
 
 def test_highs_solver_runs():
     Q = np.array([

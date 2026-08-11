@@ -1,5 +1,5 @@
 import numpy as np
-from aetheropt.solvers.classical_sa import ClassicalSA
+from aetheropt.solvers.classical.classical_sa import ClassicalSA
 
 def test_classical_sa_solve():
     Q = np.array([

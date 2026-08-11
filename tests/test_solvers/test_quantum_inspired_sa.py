@@ -1,5 +1,5 @@
 import numpy as np
-from aetheropt.solvers.quantum_inspired_sa import QuantumInspiredSA
+from aetheropt.solvers.quantum_inspired.quantum_inspired_sa import QuantumInspiredSA
 
 def test_quantum_inspired_sa_solve():
     Q = np.array([
