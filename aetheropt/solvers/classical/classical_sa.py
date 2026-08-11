@@ -27,7 +27,10 @@ class ClassicalSA(BaseSolver):
         best_energies_per_read = []
         
         for read in range(num_reads):
-            state = np.random.randint(2, size=n)
+            if "initial_state" in config:
+                state = np.array(config["initial_state"])
+            else:
+                state = np.random.randint(2, size=n)
             energy = state.T @ Q @ state
             
             temp = initial_temp
