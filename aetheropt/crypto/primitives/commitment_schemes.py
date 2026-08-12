@@ -1,1 +1,0 @@
-"""Commitment schemes stub."""
