@@ -14,62 +14,57 @@ class SimulatedBifurcationSolver(BaseSolver):
     """
     def solve(self, Q: np.ndarray, config: Dict[str, Any]) -> SolverResultData:
         start_time = time.time()
-        
         n = Q.shape[0]
-        # SB Hyperparameters
+        
         steps = config.get("num_steps", 1000)
-        dt = config.get("dt", 0.1)
+        num_reads = config.get("num_reads", 10)
+        dt = config.get("dt", 0.05)
         a0 = config.get("a0", 1.0)
-        c0 = config.get("c0", 1.0)
+        c0 = config.get("c0", 0.5)
+
+        Q_sym = 0.5 * (Q + Q.T)
         
-        # Convert QUBO Q to Ising J (assuming x in {0,1} to s in {-1, 1})
-        # Q = np.triu(Q) + np.triu(Q, 1).T
-        # J = -Q / 4 
-        # For simplicity in this heuristic, we'll use a standard mapping.
-        # Ensure symmetric
-        Q_sym = (Q + Q.T) / 2
-        J = -Q_sym / 4
-        h = -(np.sum(Q_sym, axis=1) / 2 + np.diag(Q_sym) / 4)
-        
-        # Initialize oscillator positions and momenta
-        x = (np.random.rand(n) * 2 - 1) * 0.1
-        y = (np.random.rand(n) * 2 - 1) * 0.1
-        
-        # Euler symplectic integration
-        for step in range(steps):
-            # Pump parameter slowly increases
-            p = a0 * step / steps
-            
-            # Update momenta
-            dx_dt = c0 * y
-            y += dx_dt * dt
-            
-            # Update positions (bifurcation dynamics)
-            # Force from Ising couplings
-            force = p * x - (x ** 3) + (J @ x)
-            dy_dt = force
-            x += dy_dt * dt
-        
-        # Binarize positions to spins
-        spins = np.sign(x)
-        spins[spins == 0] = 1
-        
-        # Convert spins back to binary
-        best_state = ((spins + 1) / 2).astype(int)
-        
-        # Compute QUBO energy
-        energy = best_state.T @ Q @ best_state
-        
-        runtime = time.time() - start_time
-        
+        # Convert QUBO to Ising
+        J = -0.25 * Q_sym
+        np.fill_diagonal(J, 0)
+        h = -0.5 * np.diag(Q_sym) - 0.25 * (np.sum(Q_sym, axis=1) - np.diag(Q_sym))
+
+        best_energy = float("inf")
+        best_state = None
+        energies = []
+
+        for _ in range(num_reads):
+            x = np.random.uniform(-0.1, 0.1, n)
+            y = np.random.uniform(-0.1, 0.1, n)
+
+            for t in range(steps):
+                p = a0 * (t / steps)          # pump schedule
+                
+                # Symplectic Euler
+                y = y + dt * (-(x**3) + p * x + (J @ x) + h)
+                x = x + dt * c0 * y
+
+            spins = np.sign(x)
+            spins[spins == 0] = 1
+            state = ((spins + 1) / 2).astype(int)
+
+            energy = float(state @ Q_sym @ state)
+            energies.append(energy)
+
+            if energy < best_energy:
+                best_energy = energy
+                best_state = state.copy()
+
         return SolverResultData(
             solver_name="simulated_bifurcation",
-            best_solution=best_state.tolist(),
-            objective_value=float(energy),
-            runtime_seconds=runtime,
+            best_solution=best_state.tolist() if best_state is not None else [],
+            objective_value=best_energy,
+            runtime_seconds=time.time() - start_time,
             solver_metadata={
                 "status": "completed",
+                "num_reads": num_reads,
                 "steps": steps,
-                "dt": dt
+                "best_energy": best_energy,
+                "mean_energy": float(np.mean(energies)) if energies else 0.0
             }
         )
