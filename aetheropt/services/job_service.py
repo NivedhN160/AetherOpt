@@ -7,8 +7,8 @@ from aetheropt.problems import get_problem
 from aetheropt.solvers.registry import get_solver
 from aetheropt.core.logging import logger
 from aetheropt.config import settings
-from aetheropt.crypto.quantum_safe_optimization.secure_qubo import SecureQUBO
-from aetheropt.datascience.experiments.experiment_tracker import ExperimentTracker
+from aetheropt.crypto.secure_qubo import SecureQUBO
+from aetheropt.datascience.experiments.tracker import ExperimentTracker
 import traceback
 
 def create_job(db: Session, request: ProblemRequest) -> Job:
@@ -82,18 +82,24 @@ def run_job(job_id: str):
                 )
                 db.add(db_result)
                 
-                # Experiment Tracking
-                if tracker:
-                    tracker.log_run(
-                        experiment_name=f"job_{job_id}",
-                        problem_type=problem_type,
-                        params={"solver": solver_name, "config": solver_config, "use_crypto": use_crypto},
-                        results={
-                            "objective": result_data.objective_value,
-                            "runtime": result_data.runtime_seconds,
-                            "metadata": result_data.solver_metadata
-                        }
-                    )
+                
+            # Experiment Tracking
+            if tracker:
+                all_results = []
+                for res in db.query(Result).filter(Result.job_id == job_id).all():
+                    all_results.append({
+                        "solver_name": res.solver_name,
+                        "objective_value": res.objective_value,
+                        "runtime_seconds": res.runtime_seconds,
+                        "solver_metadata": res.solver_metadata
+                    })
+                tracker.log_run(
+                    job_id=job_id,
+                    problem_type=problem_type,
+                    solvers_used=config_data["solvers"],
+                    config=config_data,
+                    results=all_results
+                )
                 
             job.status = "completed"
             db.commit()

@@ -1,1 +1,0 @@
-"""Solution comparison viz stub."""
