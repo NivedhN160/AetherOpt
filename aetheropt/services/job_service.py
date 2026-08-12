@@ -8,6 +8,8 @@ from aetheropt.solvers.registry import get_solver
 from aetheropt.core.logging import logger
 from aetheropt.config import settings
 from aetheropt.crypto.secure_qubo import SecureQUBO
+from aetheropt.crypto.commitments import ProblemCommitment
+from aetheropt.crypto.verification import ResultVerification
 from aetheropt.datascience.experiments.tracker import ExperimentTracker
 import traceback
 
@@ -47,6 +49,14 @@ def run_job(job_id: str):
             use_crypto = settings.enable_crypto or config_data.get("config", {}).get("secure", False)
             if use_crypto:
                 logger.info(f"Applying SecureQUBO blinding for job {job_id}")
+                
+                # 1. Generate Commitment
+                problem_dict = {"Q": Q.tolist()}
+                commitment = ProblemCommitment(problem_dict)
+                commitment_payload = commitment.get_commitment_payload()
+                config_data["commitment"] = commitment_payload
+                
+                # 2. Blind Matrix
                 secure_qubo = SecureQUBO(Q)
                 Q_run = secure_qubo.blind_matrix()
             else:
@@ -63,11 +73,29 @@ def run_job(job_id: str):
                 logger.info(f"Running solver {solver_name} for job {job_id}")
                 result_data = solver.solve(Q_run, solver_config)
                 
-                # Decode if crypto was used
+                # Decode and Verify if crypto was used
+                is_verified = None
                 if use_crypto and len(result_data.best_solution) > 0:
                     import numpy as np
-                    state = np.array(result_data.best_solution)
-                    result_data.objective_value = secure_qubo.decode_energy(result_data.objective_value, state)
+                    
+                    # 1. Decode Permutation
+                    decoded_state = secure_qubo.decode_solution(result_data.best_solution)
+                    
+                    # 2. Decode Energy
+                    result_data.objective_value = secure_qubo.decode_energy(result_data.objective_value, decoded_state)
+                    
+                    # 3. Verify
+                    is_verified = ResultVerification.verify_solution(
+                        problem_data={"Q": Q.tolist()},
+                        nonce=config_data["commitment"]["nonce"],
+                        commitment=config_data["commitment"]["commitment"],
+                        solution=decoded_state,
+                        q_matrix=Q,
+                        reported_energy=result_data.objective_value
+                    )
+                    result_data.solver_metadata["crypto_verified"] = is_verified
+                    
+                    result_data.best_solution = decoded_state
                 
                 # Interpret solution
                 interpreted_solution = problem.interpret_solution(result_data.best_solution)
