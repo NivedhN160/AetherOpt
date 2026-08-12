@@ -24,5 +24,6 @@ def get_job_results(
         "status": job.status,
         "problem_type": job.problem_type,
         "error_message": job.error_message,
+        "config": job.config,
         "results": job.results
     }

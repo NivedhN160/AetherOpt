@@ -25,4 +25,5 @@ class JobResultResponse(BaseModel):
     status: str
     problem_type: str
     results: List[ResultResponse]
+    config: Optional[Dict[str, Any]] = None
     error_message: Optional[str] = None
