@@ -38,7 +38,7 @@ def read_root():
     # Simple HTMX/Alpine UI or instructions
     html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
     if os.path.exists(html_path):
-        with open(html_path, "r") as f:
+        with open(html_path, "r", encoding="utf-8") as f:
             return f.read()
     return "<h1>AetherOpt is running</h1><p>API is at <a href='/docs'>/docs</a></p>"
 
