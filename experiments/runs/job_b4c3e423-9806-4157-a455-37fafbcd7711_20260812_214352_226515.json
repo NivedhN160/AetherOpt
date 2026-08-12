@@ -1,0 +1,59 @@
+{
+  "run_id": "job_b4c3e423-9806-4157-a455-37fafbcd7711_20260812_214352_226515",
+  "job_id": "b4c3e423-9806-4157-a455-37fafbcd7711",
+  "problem_type": "portfolio",
+  "timestamp": "20260812_214352_226515",
+  "config": {
+    "data": {
+      "expected_returns": [
+        0.1,
+        0.15,
+        0.08,
+        0.2
+      ],
+      "covariance_matrix": [
+        [
+          0.04,
+          0.01,
+          0.0,
+          0.0
+        ],
+        [
+          0.01,
+          0.06,
+          0.02,
+          0.0
+        ],
+        [
+          0.0,
+          0.02,
+          0.03,
+          0.01
+        ],
+        [
+          0.0,
+          0.0,
+          0.01,
+          0.08
+        ]
+      ],
+      "k": 2,
+      "risk_aversion": 0.5
+    },
+    "solvers": [
+      "simulated_bifurcation",
+      "quantum_warmstart"
+    ],
+    "config": {
+      "num_reads": 10,
+      "num_steps": 1000,
+      "p": 1,
+      "secure": true
+    }
+  },
+  "solvers": [
+    "simulated_bifurcation",
+    "quantum_warmstart"
+  ],
+  "results": []
+}
