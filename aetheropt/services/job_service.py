@@ -89,6 +89,7 @@ def run_job(job_id: str):
                 for res in db.query(Result).filter(Result.job_id == job_id).all():
                     all_results.append({
                         "solver_name": res.solver_name,
+                        "best_solution": res.best_solution,
                         "objective_value": res.objective_value,
                         "runtime_seconds": res.runtime_seconds,
                         "solver_metadata": res.solver_metadata
