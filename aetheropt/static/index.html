@@ -15,448 +15,322 @@
                         dark: {
                             bg: '#0f172a',
                             panel: '#1e293b',
-                            border: '#334155'
+                            border: '#334155',
+                            hover: '#334155'
                         }
                     }
                 }
             }
         }
     </script>
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/charts.js"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
 </head>
-<body class="min-h-screen p-8">
-    <div class="max-w-7xl mx-auto" x-data="{ currentTab: 'portfolio', selectedSolvers: ['simulated_bifurcation', 'classical_sa'], jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
-        <header class="mb-10 flex justify-between items-center border-b border-dark-border pb-4">
-            <div>
-                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">AetherOpt</h1>
-                <p class="text-slate-400 text-sm mt-1">Production-Grade Quantum-Inspired Optimization</p>
-            </div>
-            <div class="flex space-x-4 items-center">
-                <div class="flex items-center space-x-2">
-                    <label class="text-sm text-slate-400">API Key (default: secret_key):</label>
-                    <input type="password" x-model="apiKey" placeholder="secret_key" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm w-32 focus:outline-none focus:border-blue-500">
-                </div>
-                <a href="/docs" class="text-blue-400 hover:text-blue-300 text-sm">API Docs</a>
-            </div>
-        </header>
+<body class="bg-dark-bg text-slate-100 min-h-screen flex" x-data="{ currentTab: 'portfolio', selectedSolvers: ['simulated_bifurcation', 'classical_sa'], jobId: null, jobStatus: null, results: null, apiKey: 'secret_key', history: [] }" x-init="fetchHistory()">
 
-        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Left Column: Problem Definition -->
-            <div class="lg:col-span-1 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border">
-                <h2 class="text-xl font-semibold mb-4 text-white">1. Define Problem</h2>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Problem Type</label>
-                    <select x-model="currentTab" class="w-full bg-slate-800 border border-slate-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="portfolio">Portfolio Optimization</option>
-                        <option value="maxcut">Max-Cut</option>
-                        <option value="scheduling">Job Scheduling</option>
-                        <option value="routing">Vehicle Routing</option>
-                        <option value="qubo">Generic QUBO</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Select Solvers</label>
-                    <div class="space-y-1">
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="simulated_bifurcation" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">Simulated Bifurcation</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="qaoa_local" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">QAOA (Local)</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="quantum_warmstart" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">Hybrid Quantum Warmstart</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="correlation_reduction" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">Hybrid Correlation Reduction</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="quantum_inspired_sa" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">Quantum-Inspired SA</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" value="classical_sa" x-model="selectedSolvers" class="rounded bg-slate-800 border-slate-600 text-blue-500">
-                            <span class="text-sm">Classical SA</span>
-                        </label>
-                    </div>
-                </div>
+    <!-- Sidebar -->
+    <aside class="w-64 glass-panel border-r border-dark-border flex flex-col fixed h-full z-10">
+        <div class="p-6 border-b border-dark-border">
+            <h1 class="text-2xl font-bold gradient-text from-blue-400 to-emerald-400 bg-gradient-to-r">AetherOpt</h1>
+            <p class="text-slate-400 text-xs mt-1 uppercase tracking-wider font-semibold">Quantum Core</p>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-2 mt-4">Problem Type</div>
+            
+            <button @click="currentTab = 'portfolio'" :class="{'bg-dark-hover border-blue-500 text-white': currentTab === 'portfolio', 'text-slate-400 hover:bg-slate-800 border-transparent': currentTab !== 'portfolio'}" class="w-full flex items-center px-4 py-2 text-sm rounded-lg border-l-2 transition-colors text-left">
+                📊 Portfolio Opt
+            </button>
+            <button @click="currentTab = 'maxcut'" :class="{'bg-dark-hover border-emerald-500 text-white': currentTab === 'maxcut', 'text-slate-400 hover:bg-slate-800 border-transparent': currentTab !== 'maxcut'}" class="w-full flex items-center px-4 py-2 text-sm rounded-lg border-l-2 transition-colors text-left">
+                ✂️ Max-Cut
+            </button>
+            <button @click="currentTab = 'scheduling'" :class="{'bg-dark-hover border-orange-500 text-white': currentTab === 'scheduling', 'text-slate-400 hover:bg-slate-800 border-transparent': currentTab !== 'scheduling'}" class="w-full flex items-center px-4 py-2 text-sm rounded-lg border-l-2 transition-colors text-left">
+                ⏱️ Job Scheduling
+            </button>
+            <button @click="currentTab = 'routing'" :class="{'bg-dark-hover border-red-500 text-white': currentTab === 'routing', 'text-slate-400 hover:bg-slate-800 border-transparent': currentTab !== 'routing'}" class="w-full flex items-center px-4 py-2 text-sm rounded-lg border-l-2 transition-colors text-left">
+                🚚 Vehicle Routing
+            </button>
+            <button @click="currentTab = 'qubo'" :class="{'bg-dark-hover border-purple-500 text-white': currentTab === 'qubo', 'text-slate-400 hover:bg-slate-800 border-transparent': currentTab !== 'qubo'}" class="w-full flex items-center px-4 py-2 text-sm rounded-lg border-l-2 transition-colors text-left">
+                🧩 Generic QUBO
+            </button>
 
-                <!-- Portfolio Form -->
-                <div x-show="currentTab === 'portfolio'" x-data="{
-                        expectedReturns: '0.1, 0.15, 0.08, 0.2',
-                        covariance: '[[0.04, 0.01, 0.0, 0.0], [0.01, 0.06, 0.02, 0.0], [0.0, 0.02, 0.03, 0.01], [0.0, 0.0, 0.01, 0.08]]',
-                        k: 2,
-                        riskAversion: 0.5
-                    }">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Expected Returns (comma separated)</label>
-                            <input type="text" x-model="expectedReturns" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-2 mt-8">Recent Jobs</div>
+            
+            <div x-show="history.length === 0" class="text-xs text-slate-500 px-2">No history</div>
+            
+            <div class="space-y-1">
+                <template x-for="job in history" :key="job.id">
+                    <button @click="loadJob(job.id)" class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-semibold text-blue-400 uppercase" x-text="job.problem_type"></span>
+                            <div class="w-2 h-2 rounded-full" :class="{'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]': job.status==='completed', 'bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.8)]': job.status==='pending' || job.status==='running', 'bg-red-400 shadow-[0_0_5px_rgba(248,113,113,0.8)]': job.status==='failed'}"></div>
                         </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Covariance Matrix (JSON array)</label>
-                            <textarea x-model="covariance" rows="3" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Number to Select (k)</label>
-                                <input type="number" x-model="k" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Risk Aversion</label>
-                                <input type="number" step="0.1" x-model="riskAversion" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                        </div>
-                        <button 
-                            @click="submitJob('portfolio', {expected_returns: expectedReturns.split(',').map(Number), covariance_matrix: JSON.parse(covariance), k: parseInt(k), risk_aversion: parseFloat(riskAversion)})"
-                            class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded transition-colors">
-                            Solve Portfolio
-                        </button>
-                    </div>
-                </div>
-
-                <!-- MaxCut Form -->
-                <div x-show="currentTab === 'maxcut'" style="display: none;" x-data="{
-                        adjacency: '[[0, 1, 1, 0], [1, 0, 1, 1], [1, 1, 0, 1], [0, 1, 1, 0]]'
-                    }">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Adjacency Matrix (JSON array)</label>
-                            <textarea x-model="adjacency" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
-                        </div>
-                        <button 
-                            @click="submitJob('maxcut', {adjacency_matrix: JSON.parse(adjacency)})"
-                            class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded transition-colors">
-                            Solve Max-Cut
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Scheduling Form -->
-                <div x-show="currentTab === 'scheduling'" style="display: none;" x-data="{
-                        numTasks: 5,
-                        numMachines: 2,
-                        taskLengths: '10, 20, 15, 5, 25'
-                    }">
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Number of Tasks</label>
-                                <input type="number" x-model="numTasks" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Number of Machines</label>
-                                <input type="number" x-model="numMachines" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Task Lengths (comma separated)</label>
-                            <input type="text" x-model="taskLengths" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono">
-                        </div>
-                        <button 
-                            @click="submitJob('scheduling', {num_tasks: parseInt(numTasks), num_machines: parseInt(numMachines), task_lengths: taskLengths.split(',').map(Number)})"
-                            class="w-full mt-4 bg-orange-600 hover:bg-orange-500 text-white font-medium py-2 rounded transition-colors">
-                            Solve Scheduling
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Routing Form -->
-                <div x-show="currentTab === 'routing'" style="display: none;" x-data="{
-                        numLocations: 4,
-                        numVehicles: 1,
-                        distances: '[[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]'
-                    }">
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Locations (N)</label>
-                                <input type="number" x-model="numLocations" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Vehicles</label>
-                                <input type="number" x-model="numVehicles" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Distance Matrix (JSON array)</label>
-                            <textarea x-model="distances" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
-                        </div>
-                        <button 
-                            @click="submitJob('routing', {num_locations: parseInt(numLocations), num_vehicles: parseInt(numVehicles), distance_matrix: JSON.parse(distances)})"
-                            class="w-full mt-4 bg-red-600 hover:bg-red-500 text-white font-medium py-2 rounded transition-colors">
-                            Solve Routing
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Generic QUBO Form -->
-                <div x-show="currentTab === 'qubo'" style="display: none;" x-data="{
-                        q_matrix: '[[-1, 2], [0, -1.5]]'
-                    }">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Q Matrix (JSON array, upper triangular or full)</label>
-                            <textarea x-model="q_matrix" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded py-1 px-2 text-sm font-mono"></textarea>
-                        </div>
-                        <button 
-                            @click="submitJob('qubo', {Q: JSON.parse(q_matrix)})"
-                            class="w-full mt-4 bg-purple-600 hover:bg-purple-500 text-white font-medium py-2 rounded transition-colors">
-                            Solve QUBO
-                        </button>
-                    </div>
-                </div>
-
+                        <div class="text-[10px] text-slate-500 font-mono truncate group-hover:text-slate-300" x-text="job.id"></div>
+                    </button>
+                </template>
             </div>
 
-            <!-- Right Column: Results -->
-            <div class="lg:col-span-2 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border flex flex-col">
-                <h2 class="text-xl font-semibold mb-4 text-white">2. Results & Comparison</h2>
-                
-                <div x-show="!jobId" class="flex-grow flex items-center justify-center text-slate-500 border-2 border-dashed border-slate-700 rounded-lg">
-                    Define and submit a problem to see results
+        </nav>
+        
+        <div class="p-4 border-t border-dark-border">
+            <label class="block text-xs text-slate-500 mb-1">API Key</label>
+            <input type="password" x-model="apiKey" placeholder="secret_key" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8 h-screen overflow-y-auto">
+        <div class="max-w-6xl mx-auto space-y-6">
+            
+            <!-- Dashboard Header -->
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold capitalize" x-text="currentTab + ' Optimization'"></h2>
+                    <p class="text-slate-400 text-sm mt-1">Configure your problem matrix and select solvers to evaluate.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Config Column -->
+                <div class="lg:col-span-1 space-y-6">
+                    
+                    <!-- Solvers Card -->
+                    <div class="glass-panel rounded-xl p-5 shadow-lg border border-dark-border">
+                        <h3 class="text-sm font-semibold mb-4 text-slate-200 uppercase tracking-wide">1. Select Solvers</h3>
+                        
+                        <div class="space-y-2">
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-blue-500 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-blue-500': selectedSolvers.includes('simulated_bifurcation')}">
+                                <input type="checkbox" value="simulated_bifurcation" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-blue-500 border-blue-500': selectedSolvers.includes('simulated_bifurcation'), 'border-slate-500': !selectedSolvers.includes('simulated_bifurcation')}">
+                                    <svg x-show="selectedSolvers.includes('simulated_bifurcation')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">Simulated Bifurcation</span>
+                            </label>
+
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-emerald-500 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-emerald-500': selectedSolvers.includes('qaoa_local')}">
+                                <input type="checkbox" value="qaoa_local" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-emerald-500 border-emerald-500': selectedSolvers.includes('qaoa_local'), 'border-slate-500': !selectedSolvers.includes('qaoa_local')}">
+                                    <svg x-show="selectedSolvers.includes('qaoa_local')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">QAOA (Local)</span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-purple-500 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-purple-500': selectedSolvers.includes('quantum_warmstart')}">
+                                <input type="checkbox" value="quantum_warmstart" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-purple-500 border-purple-500': selectedSolvers.includes('quantum_warmstart'), 'border-slate-500': !selectedSolvers.includes('quantum_warmstart')}">
+                                    <svg x-show="selectedSolvers.includes('quantum_warmstart')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">Hybrid Warmstart</span>
+                            </label>
+
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-yellow-500 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-yellow-500': selectedSolvers.includes('correlation_reduction')}">
+                                <input type="checkbox" value="correlation_reduction" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-yellow-500 border-yellow-500': selectedSolvers.includes('correlation_reduction'), 'border-slate-500': !selectedSolvers.includes('correlation_reduction')}">
+                                    <svg x-show="selectedSolvers.includes('correlation_reduction')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">Hybrid Reduction</span>
+                            </label>
+
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-orange-500 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-orange-500': selectedSolvers.includes('quantum_inspired_sa')}">
+                                <input type="checkbox" value="quantum_inspired_sa" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-orange-500 border-orange-500': selectedSolvers.includes('quantum_inspired_sa'), 'border-slate-500': !selectedSolvers.includes('quantum_inspired_sa')}">
+                                    <svg x-show="selectedSolvers.includes('quantum_inspired_sa')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">Quantum-Inspired SA</span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 rounded-lg border border-slate-700 hover:border-slate-400 hover:bg-slate-800 transition-colors cursor-pointer" :class="{'bg-slate-800 border-slate-400': selectedSolvers.includes('classical_sa')}">
+                                <input type="checkbox" value="classical_sa" x-model="selectedSolvers" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center mr-3" :class="{'bg-slate-400 border-slate-400': selectedSolvers.includes('classical_sa'), 'border-slate-500': !selectedSolvers.includes('classical_sa')}">
+                                    <svg x-show="selectedSolvers.includes('classical_sa')" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <span class="text-sm font-medium">Classical SA</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Problem Input Card -->
+                    <div class="glass-panel rounded-xl p-5 shadow-lg border border-dark-border">
+                        <h3 class="text-sm font-semibold mb-4 text-slate-200 uppercase tracking-wide">2. Parameters</h3>
+                        
+                        <!-- Portfolio Form -->
+                        <div x-show="currentTab === 'portfolio'" x-data="{ expectedReturns: '0.1, 0.15, 0.08, 0.2', covariance: '[[0.04, 0.01, 0.0, 0.0], [0.01, 0.06, 0.02, 0.0], [0.0, 0.02, 0.03, 0.01], [0.0, 0.0, 0.01, 0.08]]', k: 2, riskAversion: 0.5 }">
+                            <div class="space-y-4">
+                                <div><label class="block text-xs text-slate-400 mb-1">Expected Returns (CSV)</label><input type="text" x-model="expectedReturns" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm focus:border-blue-500 outline-none transition-colors"></div>
+                                <div><label class="block text-xs text-slate-400 mb-1">Covariance Matrix (JSON)</label><textarea x-model="covariance" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-xs font-mono focus:border-blue-500 outline-none transition-colors"></textarea></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs text-slate-400 mb-1">Select (k)</label><input type="number" x-model="k" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div>
+                                    <div><label class="block text-xs text-slate-400 mb-1">Risk Aversion</label><input type="number" step="0.1" x-model="riskAversion" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div>
+                                </div>
+                                <button @click="submitJob('portfolio', {expected_returns: expectedReturns.split(',').map(Number), covariance_matrix: JSON.parse(covariance), k: parseInt(k), risk_aversion: parseFloat(riskAversion)})" class="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all">Submit Portfolio Job</button>
+                            </div>
+                        </div>
+
+                        <!-- MaxCut Form -->
+                        <div x-show="currentTab === 'maxcut'" style="display: none;" x-data="{ adjacency: '[[0, 1, 1, 0], [1, 0, 1, 1], [1, 1, 0, 1], [0, 1, 1, 0]]' }">
+                            <div class="space-y-4">
+                                <div><label class="block text-xs text-slate-400 mb-1">Adjacency Matrix (JSON)</label><textarea x-model="adjacency" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-xs font-mono focus:border-emerald-500 outline-none transition-colors"></textarea></div>
+                                <button @click="submitJob('maxcut', {adjacency_matrix: JSON.parse(adjacency)})" class="w-full mt-4 bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-emerald-500/25 transition-all">Submit Max-Cut Job</button>
+                            </div>
+                        </div>
+
+                        <!-- Add other forms similarly but collapsed for brevity, or keep them -->
+                        <!-- Scheduling Form -->
+                        <div x-show="currentTab === 'scheduling'" style="display: none;" x-data="{ numTasks: 5, numMachines: 2, taskLengths: '10, 20, 15, 5, 25' }">
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-slate-400 mb-1">Tasks</label><input type="number" x-model="numTasks" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div><div><label class="block text-xs text-slate-400 mb-1">Machines</label><input type="number" x-model="numMachines" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div></div>
+                                <div><label class="block text-xs text-slate-400 mb-1">Lengths (CSV)</label><input type="text" x-model="taskLengths" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm font-mono"></div>
+                                <button @click="submitJob('scheduling', {num_tasks: parseInt(numTasks), num_machines: parseInt(numMachines), task_lengths: taskLengths.split(',').map(Number)})" class="w-full mt-4 bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-500 hover:to-orange-700 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-orange-500/25 transition-all">Submit Scheduling Job</button>
+                            </div>
+                        </div>
+
+                        <!-- Routing Form -->
+                        <div x-show="currentTab === 'routing'" style="display: none;" x-data="{ numLocations: 4, numVehicles: 1, distances: '[[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]' }">
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-slate-400 mb-1">Locations</label><input type="number" x-model="numLocations" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div><div><label class="block text-xs text-slate-400 mb-1">Vehicles</label><input type="number" x-model="numVehicles" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-sm"></div></div>
+                                <div><label class="block text-xs text-slate-400 mb-1">Distance Matrix (JSON)</label><textarea x-model="distances" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-xs font-mono"></textarea></div>
+                                <button @click="submitJob('routing', {num_locations: parseInt(numLocations), num_vehicles: parseInt(numVehicles), distance_matrix: JSON.parse(distances)})" class="w-full mt-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-red-500/25 transition-all">Submit Routing Job</button>
+                            </div>
+                        </div>
+
+                        <!-- QUBO Form -->
+                        <div x-show="currentTab === 'qubo'" style="display: none;" x-data="{ q_matrix: '[[-1, 2], [0, -1.5]]' }">
+                            <div class="space-y-4">
+                                <div><label class="block text-xs text-slate-400 mb-1">Q Matrix (JSON)</label><textarea x-model="q_matrix" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded py-2 px-3 text-xs font-mono"></textarea></div>
+                                <button @click="submitJob('qubo', {Q: JSON.parse(q_matrix)})" class="w-full mt-4 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all">Submit QUBO</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div x-show="jobId" style="display: none;">
-                    <div class="flex justify-between items-center mb-6 bg-slate-800 p-4 rounded-lg">
-                        <div>
-                            <span class="text-xs text-slate-400 block">Job ID</span>
-                            <span class="font-mono text-sm" x-text="jobId"></span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs text-slate-400 block">Status</span>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full" 
-                                  :class="{
-                                      'bg-yellow-500/20 text-yellow-400': jobStatus === 'pending' || jobStatus === 'running',
-                                      'bg-emerald-500/20 text-emerald-400': jobStatus === 'completed',
-                                      'bg-red-500/20 text-red-400': jobStatus === 'failed'
-                                  }"
-                                  x-text="jobStatus"></span>
-                        </div>
+                <!-- Results Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <div x-show="!jobId" class="glass-panel rounded-xl h-64 flex flex-col items-center justify-center text-slate-500 border border-dashed border-slate-600">
+                        <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        Submit a job to view analytics
                     </div>
 
-                    <div x-show="jobStatus === 'running' || jobStatus === 'pending'" class="flex justify-center p-8">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                    </div>
+                    <div x-show="jobId" style="display: none;" class="space-y-6">
+                        
+                        <!-- Job Header -->
+                        <div class="glass-panel rounded-xl p-5 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-400 block mb-1">Job ID</span>
+                                <span class="font-mono text-sm tracking-wide text-white" x-text="jobId"></span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs text-slate-400">Status</span>
+                                <div class="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider flex items-center shadow-inner" 
+                                     :class="{
+                                         'bg-yellow-900/50 text-yellow-400 border border-yellow-700': jobStatus === 'pending' || jobStatus === 'running',
+                                         'bg-emerald-900/50 text-emerald-400 border border-emerald-700': jobStatus === 'completed',
+                                         'bg-red-900/50 text-red-400 border border-red-700': jobStatus === 'failed'
+                                     }">
+                                    <svg x-show="jobStatus === 'running'" class="animate-spin -ml-1 mr-2 h-3 w-3 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <span x-text="jobStatus"></span>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div x-show="jobStatus === 'completed' && results">
-                        <h3 class="text-lg font-medium mb-3">Solver Comparison</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Chart (Only on complete) -->
+                        <div x-show="jobStatus === 'completed' && results" class="glass-panel rounded-xl p-5 shadow-lg border border-dark-border">
+                            <h3 class="text-sm font-semibold mb-4 text-slate-200 uppercase tracking-wide">Energy Convergence</h3>
+                            <div class="w-full h-64">
+                                <canvas id="energyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Results Grid -->
+                        <div x-show="jobStatus === 'completed' && results" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <template x-for="res in results" :key="res.solver_name">
-                                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4" :class="{'border-red-500/50': res.solver_metadata?.error}">
-                                    <h4 class="font-semibold text-blue-400 mb-2 capitalize" x-text="res.solver_name.replace('_', ' ')"></h4>
+                                <div class="glass-panel border-l-4 rounded-xl p-4 hover-glow transition-all" :class="{'border-l-blue-500': !res.solver_metadata?.error, 'border-l-red-500': res.solver_metadata?.error}">
+                                    <h4 class="font-bold text-slate-100 mb-3 capitalize text-sm tracking-wide" x-text="res.solver_name.replace('_', ' ')"></h4>
                                     
-                                    <!-- Error State for specific solver -->
                                     <template x-if="res.solver_metadata && res.solver_metadata.error">
-                                        <div class="text-sm text-red-400 p-2 bg-red-900/20 rounded border border-red-900/50" x-text="res.solver_metadata.error"></div>
+                                        <div class="text-xs text-red-400 p-2 bg-red-900/20 rounded border border-red-900/50" x-text="res.solver_metadata.error"></div>
                                     </template>
                                     
                                     <div x-show="!res.solver_metadata || !res.solver_metadata.error" class="space-y-2 text-sm">
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-400">Objective:</span>
-                                            <span class="font-mono" x-text="res.objective_value.toFixed(4)"></span>
+                                        <div class="flex justify-between items-end border-b border-slate-700/50 pb-2">
+                                            <span class="text-slate-400 text-xs">Objective</span>
+                                            <span class="font-mono text-emerald-400 font-bold" x-text="res.objective_value.toFixed(4)"></span>
                                         </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-400">Time:</span>
-                                            <span class="font-mono" x-text="res.runtime_seconds.toFixed(4) + 's'"></span>
+                                        <div class="flex justify-between items-end border-b border-slate-700/50 pb-2">
+                                            <span class="text-slate-400 text-xs">Time (s)</span>
+                                            <span class="font-mono text-amber-400" x-text="res.runtime_seconds.toFixed(4)"></span>
                                         </div>
                                         
-                                        <!-- Quantum/Hybrid Metadata -->
                                         <template x-if="res.solver_metadata && res.solver_metadata.quantum_energy !== undefined">
-                                            <div class="flex justify-between text-purple-400 text-xs mt-1">
-                                                <span>Warmstart Quantum Energy:</span>
-                                                <span class="font-mono" x-text="res.solver_metadata.quantum_energy.toFixed(4)"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="res.solver_metadata && res.solver_metadata.frozen_count !== undefined">
-                                            <div class="flex justify-between text-emerald-400 text-xs mt-1">
-                                                <span>Variables Frozen (Reduction):</span>
-                                                <span class="font-mono" x-text="res.solver_metadata.frozen_count"></span>
+                                            <div class="flex justify-between items-end border-b border-slate-700/50 pb-2">
+                                                <span class="text-slate-400 text-xs">Warmstart Energy</span>
+                                                <span class="font-mono text-purple-400" x-text="res.solver_metadata.quantum_energy.toFixed(4)"></span>
                                             </div>
                                         </template>
 
-                                        <div class="mt-3 pt-3 border-t border-slate-700">
-                                            <span class="text-slate-400 text-xs block mb-2">Interpreted Solution:</span>
-                                            
-                                            <!-- Portfolio -->
-                                            <template x-if="res.best_solution && res.best_solution.selected_assets !== undefined">
-                                                <div class="text-sm">
-                                                    <span class="text-slate-300 text-xs">Selected Assets: </span>
-                                                    <div class="flex flex-wrap gap-1 mt-1">
-                                                        <template x-for="asset in res.best_solution.selected_assets">
-                                                            <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 font-mono text-xs" x-text="asset"></span>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-
-                                            <!-- Routing -->
-                                            <template x-if="res.best_solution && res.best_solution.route !== undefined">
-                                                <div class="text-sm">
-                                                    <span class="text-slate-300 text-xs">Optimal Route: </span>
-                                                    <div class="flex flex-wrap items-center gap-1 mt-1">
-                                                        <template x-for="(city, idx) in res.best_solution.route">
-                                                            <div class="flex items-center">
-                                                                <span class="bg-emerald-900/50 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-mono text-xs" x-text="city"></span>
-                                                                <template x-if="idx < res.best_solution.route.length - 1">
-                                                                    <span class="text-slate-500 mx-1">→</span>
-                                                                </template>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-
-                                            <!-- Scheduling -->
-                                            <template x-if="res.best_solution && res.best_solution.schedule !== undefined">
-                                                <div class="text-sm space-y-2 mt-1">
-                                                    <template x-for="(tasks, machine) in res.best_solution.schedule">
-                                                        <div>
-                                                            <span class="text-slate-400 text-xs">Machine <span x-text="machine"></span>:</span>
-                                                            <div class="flex flex-wrap gap-1 mt-0.5">
-                                                                <template x-if="tasks.length === 0">
-                                                                    <span class="text-slate-500 text-xs italic">Idle</span>
-                                                                </template>
-                                                                <template x-for="task in tasks">
-                                                                    <span class="bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded border border-orange-800 font-mono text-xs" x-text="'T' + task"></span>
-                                                                </template>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                            
-                                            <!-- Generic QUBO Fallback -->
-                                            <template x-if="!res.best_solution || (res.best_solution.selected_assets === undefined && res.best_solution.route === undefined && res.best_solution.schedule === undefined)">
-                                                <pre class="bg-slate-900 p-2 rounded text-[10px] overflow-x-auto text-emerald-300 mt-1" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
-                                            </template>
-                                        </div>
+                                        <div class="mt-3">
+                                            <span class="text-slate-500 text-[10px] uppercase tracking-wider block mb-1">Solution Preview</span>
+                                            <div class="bg-slate-900/50 p-2 rounded max-h-24 overflow-y-auto">
+                                                <pre class="text-[10px] text-blue-300 font-mono whitespace-pre-wrap" x-text="JSON.stringify(res.best_solution, null, 2)"></pre>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </template>
                         </div>
-                    </div>
-                    
-                    <div x-show="jobStatus === 'failed'" class="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg flex items-start space-x-3">
-                        <svg class="w-6 h-6 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <div>
-                            <p class="font-semibold mb-1 text-red-300">Job Failed</p>
-                            <p class="text-sm text-red-200/80" x-text="results?.error_message || 'An unknown error occurred while processing your request.'"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Far Right Column: Job History -->
-            <div class="lg:col-span-1 bg-dark-panel rounded-xl p-6 shadow-xl border border-dark-border flex flex-col max-h-[800px] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-white">3. History</h2>
-                    <button @click="fetchHistory()" class="text-slate-400 hover:text-white" title="Refresh History">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    </button>
-                </div>
-                
-                <div x-show="history.length === 0" class="text-sm text-slate-500 text-center mt-10">
-                    No recent jobs found.
-                </div>
-
-                <div class="space-y-3">
-                    <template x-for="job in history" :key="job.id">
-                        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors"
-                             @click="loadJob(job.id)">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-semibold text-blue-400 uppercase" x-text="job.problem_type"></span>
-                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full" 
-                                      :class="{
-                                          'bg-yellow-500/20 text-yellow-400': job.status === 'pending' || job.status === 'running',
-                                          'bg-emerald-500/20 text-emerald-400': job.status === 'completed',
-                                          'bg-red-500/20 text-red-400': job.status === 'failed'
-                                      }"
-                                      x-text="job.status"></span>
+                        
+                        <!-- Error Box -->
+                        <div x-show="jobStatus === 'failed'" class="glass-panel border-l-4 border-l-red-500 p-5 rounded-xl flex items-start space-x-4">
+                            <svg class="w-6 h-6 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div>
+                                <p class="font-semibold text-red-300 mb-1">Execution Failed</p>
+                                <p class="text-xs text-red-200/80 font-mono" x-text="results?.error_message || 'An unknown error occurred.'"></p>
                             </div>
-                            <div class="text-xs text-slate-400 font-mono truncate" x-text="job.id"></div>
                         </div>
-                    </template>
+
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script>
-        // Alpine component logic injected to global for simplicity
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({}))
         })
 
-        // Simple fetch wrapper to handle API calls
         async function submitJob(problemType, data) {
             const comp = Alpine.$data(document.querySelector('[x-data]'));
             const solvers = comp.selectedSolvers || [];
-            
-            if (solvers.length === 0) {
-                alert("Please select at least one solver.");
-                return;
-            }
+            if (solvers.length === 0) { alert("Please select at least one solver."); return; }
             
             comp.jobId = null;
             comp.jobStatus = 'pending';
             comp.results = null;
 
-            if (!comp.apiKey) {
-                comp.jobStatus = 'failed';
-                comp.results = { error_message: 'API Key is required to submit jobs.' };
-                return;
-            }
-
             try {
                 const response = await fetch('/api/v1/jobs/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': comp.apiKey
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': comp.apiKey },
                     body: JSON.stringify({
-                        problem_type: problemType,
-                        data: data,
-                        solvers: solvers,
-                        config: { num_reads: 10, num_steps: 1000, p: 1 }
+                        problem_type: problemType, data: data, solvers: solvers,
+                        config: { num_reads: 10, num_steps: 1000, p: 1, secure: true }
                     })
                 });
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    let errMsg = err.detail?.[0]?.msg || err.detail || 'The server rejected the request. Please check your inputs.';
-                    if (typeof errMsg === 'object') errMsg = JSON.stringify(errMsg);
-                    throw new Error(errMsg);
-                }
-                
+                if (!response.ok) throw new Error("Request failed");
                 const result = await response.json();
                 comp.jobId = result.id;
                 
-                // Poll for results
                 pollJobStatus(result.id, comp);
-                
-                // Refresh history
                 fetchHistory();
                 
             } catch (err) {
-                console.error(err);
                 comp.jobStatus = 'failed';
                 comp.results = { error_message: err.message };
             }
@@ -465,10 +339,7 @@
         async function pollJobStatus(jobId, comp) {
             const interval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/v1/results/${jobId}`, {
-                        headers: { 'X-API-Key': comp.apiKey }
-                    });
-                    
+                    const response = await fetch(`/api/v1/results/${jobId}`, { headers: { 'X-API-Key': comp.apiKey } });
                     if (response.ok) {
                         const data = await response.json();
                         comp.jobStatus = data.status;
@@ -476,8 +347,23 @@
                         if (data.status === 'completed' || data.status === 'failed') {
                             clearInterval(interval);
                             comp.results = data.results;
-                            if(data.status === 'failed') {
-                                comp.results = { error_message: data.error_message };
+                            if(data.status === 'failed') comp.results = { error_message: data.error_message };
+                            
+                            // Render chart if completed
+                            if(data.status === 'completed' && window.renderEnergyChart) {
+                                // Extract chart data based on python plots.py schema
+                                let chartDatasets = [];
+                                data.results.forEach(res => {
+                                    if(res.solver_metadata && res.solver_metadata.energies) {
+                                        chartDatasets.push({
+                                            label: res.solver_name,
+                                            data: res.solver_metadata.energies
+                                        });
+                                    }
+                                });
+                                if (chartDatasets.length > 0) {
+                                    setTimeout(() => window.renderEnergyChart('energyChart', chartDatasets), 100);
+                                }
                             }
                         }
                     }
@@ -490,21 +376,15 @@
         async function fetchHistory() {
             const comp = Alpine.$data(document.querySelector('[x-data]'));
             try {
-                const response = await fetch('/api/v1/jobs/?limit=10', {
-                    headers: { 'X-API-Key': comp.apiKey }
-                });
-                if (response.ok) {
-                    comp.history = await response.json();
-                }
-            } catch (err) {
-                console.error("History fetch error", err);
-            }
+                const response = await fetch('/api/v1/jobs/?limit=20', { headers: { 'X-API-Key': comp.apiKey } });
+                if (response.ok) comp.history = await response.json();
+            } catch (err) {}
         }
 
         async function loadJob(jobId) {
             const comp = Alpine.$data(document.querySelector('[x-data]'));
             comp.jobId = jobId;
-            comp.jobStatus = 'pending'; // Show loading
+            comp.jobStatus = 'pending';
             comp.results = null;
             pollJobStatus(jobId, comp);
         }
